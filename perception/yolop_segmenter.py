@@ -23,7 +23,7 @@ class YOLOPSegmenter:
 
         self.model.eval()
 
-        
+
     def segment(self, img, pad_h, pad_w, height, width, ratio):
 
         det_out, da_seg_out, ll_seg_out = self.model(img)
@@ -72,6 +72,16 @@ class YOLOPSegmenter:
             .squeeze()
             .cpu()
             .numpy()
+        )
+
+        cv2.imshow(
+            "road Mask",
+            da_seg_mask.astype("uint8") * 255
+        )
+
+        cv2.imshow(
+            "lane Mask",
+            ll_seg_mask.astype("uint8") * 255
         )
 
         return {
