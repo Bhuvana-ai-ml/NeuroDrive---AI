@@ -5,6 +5,8 @@ from perception.driving_state import DrivingState
 from perception.distance_estimation import DistanceEstimator
 from perception.road_segmenter import RoadSegmenter
 from tracking.object_tracker import ObjectTracker
+from agents.risk_agent import RiskAssessmentAgent
+from agents.explanation_agent import ExplanationAgent
 from risk.ttc import TTCEngine
 
 detector = ObjectDetector()
@@ -15,8 +17,11 @@ ttc_engine = TTCEngine()
 
 distance_estimator = DistanceEstimator()
 
-
 tracker = ObjectTracker()
+
+risk_agent = RiskAssessmentAgent()
+
+explanation_agent = ExplanationAgent()
 
 cap = cv2.VideoCapture(r"C:\Users\Bhuvana P\OneDrive\Desktop\NeuroDrive-AI\data\videos\road.mp4")
 
@@ -68,14 +73,21 @@ while cap.isOpened():
             bbox
         )
 
-        relative_speed = max(speed, 1)
+        # Better TTC calculation
+        if speed < 1:
 
-        ttc = ttc_engine.calculate_ttc(
-            distance,
-            relative_speed
-        )
+            ttc = 999
 
-        risk = ttc_engine.risk_level(ttc)
+            risk = "safe"
+
+        else:
+
+            ttc = ttc_engine.calculate_ttc(
+                distance,
+                speed
+            )
+
+            risk = ttc_engine.risk_level(ttc)
 
         detection["distance"] = distance
         detection["ttc"] = ttc
@@ -90,12 +102,17 @@ while cap.isOpened():
 
         
 
+        if ttc == 999:
+            ttc_text = "N/A"
+        else:
+            ttc_text = f"{ttc}s"
+
         label = (
-        f"{object_type} "
-        f"{distance}m "
-        f"TTC:{ttc}s "
-    f"{risk}"
-)
+            f"{object_type} "
+            f"{distance}m "
+            f"TTC:{ttc_text} "
+            f"{risk}"
+        )
 
         cv2.rectangle(
             frame,
@@ -143,6 +160,20 @@ while cap.isOpened():
     else:
         state.collision_risk = "safe"
 
+    
+    risk_result = risk_agent.assess(
+        state.to_dict()
+    )
+
+    state.decision = risk_result["decision"]
+
+    state.priority = risk_result["priority"]
+
+    state.reason = risk_result["reason"]
+
+    state.explanation = explanation_agent.explain(
+        state.to_dict()
+    )
 
     if frame_count % 30 == 0:
 
