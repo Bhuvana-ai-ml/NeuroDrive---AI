@@ -10,6 +10,8 @@ from agents.explanation_agent import ExplanationAgent
 from agents.perception_agent import PerceptionAgent
 from agents.traffic_rule_agent import TrafficRuleAgent 
 from agents.lane_occupancy_agent import LaneOccupancyAgent
+from agents.emergency_brake_agent import EmergencyBrakeAgent
+from agents.safety_report_agent import SafetyReportAgent
 from risk.ttc import TTCEngine
 
 detector = ObjectDetector()
@@ -31,6 +33,10 @@ perception_agent = PerceptionAgent()
 traffic_rule_agent = TrafficRuleAgent()
 
 lane_agent = LaneOccupancyAgent()
+
+emergency_brake_agent = EmergencyBrakeAgent()
+
+safety_agent = SafetyReportAgent()
 
 cap = cv2.VideoCapture(r"C:\Users\Bhuvana P\OneDrive\Desktop\NeuroDrive-AI\data\videos\road.mp4")
 
@@ -154,6 +160,9 @@ while cap.isOpened():
 
     state.lane_objects = lane_objects
 
+    print("\nLANE OBJECTS")
+    print(lane_objects)
+
     state.road_detected = road_info["road_detected"]
 
     state.lane_detected = road_info["lane_detected"]
@@ -162,7 +171,11 @@ while cap.isOpened():
     # Overall Collision Risk
     # ----------------------------
 
-    risks = [obj["risk"] for obj in lane_objects]
+    if len(lane_objects) > 0:
+        risks = [obj["risk"] for obj in lane_objects]
+    else:
+        risks = [obj["risk"] for obj in enhanced_detections]
+
 
     if "critical" in risks:
         state.collision_risk = "critical"
@@ -205,11 +218,6 @@ while cap.isOpened():
 
         state.reason = risk_result["reason"]
 
-    state.decision = risk_result["decision"]
-
-    state.priority = risk_result["priority"]
-
-    state.reason = risk_result["reason"]
 
     state.explanation = explanation_agent.explain(
         state.to_dict()
@@ -222,11 +230,13 @@ while cap.isOpened():
     print("\nPERCEPTION SUMMARY")
     print(perception_summary)
 
-    
+    state.emergency_brake = (
+        emergency_brake_agent.should_brake(
+            state.to_dict()
+        )
+    )
 
     
-
-
     if frame_count % 30 == 0:
 
         print("\n========== DRIVING STATE ==========")
@@ -234,6 +244,14 @@ while cap.isOpened():
         print(state.to_dict())
 
         print("===================================\n")
+
+        report = safety_agent.generate(
+            state.to_dict()
+        )
+
+        print("\n===== SAFETY REPORT =====")
+        print(report)
+        print("=========================\n")
 
     cv2.imshow(
         "NeuroDrive AI",

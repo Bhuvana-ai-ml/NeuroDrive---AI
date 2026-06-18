@@ -6,10 +6,10 @@ class ExplanationAgent:
 
         decision = driving_state["decision"]
 
-        objects = driving_state.get(
-            "lane_objects",
-            driving_state["objects"]
-        )
+        objects = driving_state["lane_objects"]
+
+        if len(objects) == 0:
+            objects = driving_state["objects"]
 
         if len(objects) == 0:
 

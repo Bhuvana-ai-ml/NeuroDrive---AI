@@ -16,6 +16,7 @@ class DrivingState:
         self.rule_triggered = False
         self.rule = None
         self.lane_objects = []
+        self.emergency_brake = False
 
         
 
@@ -32,5 +33,6 @@ class DrivingState:
             "explanation": self.explanation,
             "rule_triggered": self.rule_triggered,
             "rule": self.rule,
-            "lane_objects": self.lane_objects
+            "lane_objects": self.lane_objects,
+            "emergency_brake": self.emergency_brake
         }
