@@ -27,4 +27,8 @@ __pycache__/
 Thumbs.db
 
 
-#yolop/weights/
+
+# YOLOP generated files
+yolop/inference/output/
+yolop/runs/
+yolop/weights/
