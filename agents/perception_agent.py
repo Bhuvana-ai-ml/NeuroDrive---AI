@@ -2,7 +2,9 @@ class PerceptionAgent:
 
     def analyze(self, driving_state):
 
-        objects = driving_state["objects"]
+        objects = driving_state.get("lane_objects",
+        driving_state["objects"]
+        )
 
         if len(objects) == 0:
 

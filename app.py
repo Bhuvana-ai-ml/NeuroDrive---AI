@@ -8,6 +8,8 @@ from tracking.object_tracker import ObjectTracker
 from agents.risk_agent import RiskAssessmentAgent
 from agents.explanation_agent import ExplanationAgent
 from agents.perception_agent import PerceptionAgent
+from agents.traffic_rule_agent import TrafficRuleAgent 
+from agents.lane_occupancy_agent import LaneOccupancyAgent
 from risk.ttc import TTCEngine
 
 detector = ObjectDetector()
@@ -25,6 +27,10 @@ risk_agent = RiskAssessmentAgent()
 explanation_agent = ExplanationAgent()
 
 perception_agent = PerceptionAgent()
+
+traffic_rule_agent = TrafficRuleAgent()
+
+lane_agent = LaneOccupancyAgent()
 
 cap = cv2.VideoCapture(r"C:\Users\Bhuvana P\OneDrive\Desktop\NeuroDrive-AI\data\videos\road.mp4")
 
@@ -141,6 +147,13 @@ while cap.isOpened():
 
     state.objects = enhanced_detections
 
+    lane_objects = lane_agent.evaluate(
+        enhanced_detections,
+        frame.shape[1]
+    )
+
+    state.lane_objects = lane_objects
+
     state.road_detected = road_info["road_detected"]
 
     state.lane_detected = road_info["lane_detected"]
@@ -149,7 +162,7 @@ while cap.isOpened():
     # Overall Collision Risk
     # ----------------------------
 
-    risks = [obj["risk"] for obj in enhanced_detections]
+    risks = [obj["risk"] for obj in lane_objects]
 
     if "critical" in risks:
         state.collision_risk = "critical"
@@ -168,6 +181,30 @@ while cap.isOpened():
         state.to_dict()
     )
 
+    rule_result = traffic_rule_agent.evaluate(
+        state.to_dict()
+    )
+
+    state.rule_triggered = rule_result["rule_triggered"]
+
+    state.rule = rule_result["rule"]
+
+    if rule_result["rule_triggered"]:
+
+        state.decision = rule_result["action"]
+
+        state.priority = "HIGH"
+
+        state.reason = rule_result["rule"]
+
+    else:
+
+        state.decision = risk_result["decision"]
+
+        state.priority = risk_result["priority"]
+
+        state.reason = risk_result["reason"]
+
     state.decision = risk_result["decision"]
 
     state.priority = risk_result["priority"]
@@ -177,13 +214,18 @@ while cap.isOpened():
     state.explanation = explanation_agent.explain(
         state.to_dict()
     )
-    
+
     perception_summary = perception_agent.analyze(
         state.to_dict()
     )
 
     print("\nPERCEPTION SUMMARY")
     print(perception_summary)
+
+    
+
+    
+
 
     if frame_count % 30 == 0:
 

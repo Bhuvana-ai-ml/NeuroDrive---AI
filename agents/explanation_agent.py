@@ -6,13 +6,17 @@ class ExplanationAgent:
 
         decision = driving_state["decision"]
 
-        objects = driving_state["objects"]
+        objects = driving_state.get(
+            "lane_objects",
+            driving_state["objects"]
+        )
 
         if len(objects) == 0:
 
             return (
-                "No significant obstacles detected. "
-                "Maintaining current speed."
+                f"The vehicle decided to "
+                f"{driving_state['decision']}. "
+                "No obstacles detected in the driving lane."
             )
 
         nearest = min(

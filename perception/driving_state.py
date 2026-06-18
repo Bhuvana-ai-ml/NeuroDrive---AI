@@ -13,6 +13,9 @@ class DrivingState:
         self.priority = None
         self.reason = None
         self.explanation = None
+        self.rule_triggered = False
+        self.rule = None
+        self.lane_objects = []
 
         
 
@@ -26,5 +29,8 @@ class DrivingState:
             "decision": self.decision,
             "priority": self.priority,
             "reason": self.reason,
-            "explanation": self.explanation
+            "explanation": self.explanation,
+            "rule_triggered": self.rule_triggered,
+            "rule": self.rule,
+            "lane_objects": self.lane_objects
         }
