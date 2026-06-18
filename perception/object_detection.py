@@ -18,8 +18,11 @@ class ObjectDetector:
 
     def detect(self, frame):
 
-        results = self.model(frame, verbose=False)
-
+        results = self.model.track(
+            frame,
+            persist=True,
+            conf=0.5
+        )
         detections = []
 
         for result in results:
@@ -34,9 +37,15 @@ class ObjectDetector:
                 if class_name not in self.target_classes:
                     continue
 
+                if box.id is None:
+                    continue
+
+                track_id = int(box.id.item())
+
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
 
                 detections.append({
+                    "id": track_id,
                     "class": class_name,
                     "confidence": round(confidence, 2),
                     "bbox": [x1, y1, x2, y2]
@@ -51,10 +60,10 @@ class ObjectDetector:
             x1, y1, x2, y2 = detection["bbox"]
 
             label = (
+                f"ID:{detection['id']} "
                 f"{detection['class']} "
                 f"{detection['confidence']:.2f}"
             )
-
             cv2.rectangle(
                 frame,
                 (x1, y1),
