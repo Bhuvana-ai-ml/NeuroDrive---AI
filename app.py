@@ -7,6 +7,7 @@ from perception.road_segmenter import RoadSegmenter
 from tracking.object_tracker import ObjectTracker
 from agents.risk_agent import RiskAssessmentAgent
 from agents.explanation_agent import ExplanationAgent
+from agents.perception_agent import PerceptionAgent
 from risk.ttc import TTCEngine
 
 detector = ObjectDetector()
@@ -22,6 +23,8 @@ tracker = ObjectTracker()
 risk_agent = RiskAssessmentAgent()
 
 explanation_agent = ExplanationAgent()
+
+perception_agent = PerceptionAgent()
 
 cap = cv2.VideoCapture(r"C:\Users\Bhuvana P\OneDrive\Desktop\NeuroDrive-AI\data\videos\road.mp4")
 
@@ -174,6 +177,13 @@ while cap.isOpened():
     state.explanation = explanation_agent.explain(
         state.to_dict()
     )
+    
+    perception_summary = perception_agent.analyze(
+        state.to_dict()
+    )
+
+    print("\nPERCEPTION SUMMARY")
+    print(perception_summary)
 
     if frame_count % 30 == 0:
 
