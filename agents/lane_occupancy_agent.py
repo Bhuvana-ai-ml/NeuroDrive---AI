@@ -28,7 +28,18 @@ class LaneOccupancyAgent:
                 mask_h - 1
             )
 
-            if lane_mask[bottom_y, center_x] > 0:
+            x_start = max(center_x - 20, 0)
+            x_end = min(center_x + 20, mask_w)
+
+            y_start = max(bottom_y - 10, 0)
+            y_end = min(bottom_y + 10, mask_h)
+
+            region = lane_mask[
+                y_start:y_end,
+                x_start:x_end
+            ]
+
+            if region.sum() > 0:
 
                 obj["in_lane"] = True
 
@@ -38,4 +49,5 @@ class LaneOccupancyAgent:
 
                 obj["in_lane"] = False
 
+                
         return lane_objects
