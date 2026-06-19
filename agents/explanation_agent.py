@@ -1,23 +1,24 @@
 class ExplanationAgent:
-
     def explain(self, driving_state):
+
+        print("NEW EXPLANATION AGENT RUNNING")
 
         risk = driving_state["collision_risk"]
 
         decision = driving_state["decision"]
 
-        objects = driving_state["lane_objects"]
+        lane_objects = driving_state["lane_objects"]
 
-        if len(objects) == 0:
-            objects = driving_state["objects"]
+        print("Lane Objects:", driving_state["lane_objects"])
 
-        if len(objects) == 0:
+        if len(lane_objects) == 0:
 
             return (
-                f"The vehicle decided to "
-                f"{driving_state['decision']}. "
+                f"The vehicle decided to {decision}. "
                 "No obstacles detected in the driving lane."
             )
+
+        objects = lane_objects
 
         nearest = min(
             objects,

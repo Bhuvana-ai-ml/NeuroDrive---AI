@@ -54,6 +54,7 @@ while cap.isOpened():
     detections = detector.detect(frame)
 
     road_info = segmenter.segment(frame)
+    print(road_info.keys())
 
 
     state = DrivingState()
@@ -167,14 +168,16 @@ while cap.isOpened():
 
     state.lane_detected = road_info["lane_detected"]
 
+    print(
+    "BEFORE RISK AGENT:",
+    state.collision_risk
+)
+
     # ----------------------------
     # Overall Collision Risk
     # ----------------------------
 
-    if len(lane_objects) > 0:
-        risks = [obj["risk"] for obj in lane_objects]
-    else:
-        risks = [obj["risk"] for obj in enhanced_detections]
+    risks = [obj["risk"] for obj in lane_objects]
 
 
     if "critical" in risks:
@@ -192,6 +195,19 @@ while cap.isOpened():
     
     risk_result = risk_agent.assess(
         state.to_dict()
+    )
+
+    print("\nDEBUG")
+    print("Lane Objects:", lane_objects)
+
+    risks = [obj["risk"] for obj in lane_objects]
+
+    print("Risks:", risks)
+    print("Collision Risk:", state.collision_risk)
+
+    print(
+        "AFTER RISK CALCULATION:",
+        state.collision_risk
     )
 
     rule_result = traffic_rule_agent.evaluate(
