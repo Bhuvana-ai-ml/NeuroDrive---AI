@@ -1,7 +1,7 @@
 class ExplanationAgent:
     def explain(self, driving_state):
 
-        print("NEW EXPLANATION AGENT RUNNING")
+        
 
         risk = driving_state["collision_risk"]
 
@@ -9,7 +9,7 @@ class ExplanationAgent:
 
         lane_objects = driving_state["lane_objects"]
 
-        print("Lane Objects:", driving_state["lane_objects"])
+        
 
         if len(lane_objects) == 0:
 

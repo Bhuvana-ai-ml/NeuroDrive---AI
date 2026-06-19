@@ -156,8 +156,10 @@ while cap.isOpened():
 
     lane_objects = lane_agent.evaluate(
         enhanced_detections,
-        frame.shape[1]
+        road_info["lane_mask"]
     )
+
+
 
     state.lane_objects = lane_objects
 
@@ -168,10 +170,7 @@ while cap.isOpened():
 
     state.lane_detected = road_info["lane_detected"]
 
-    print(
-    "BEFORE RISK AGENT:",
-    state.collision_risk
-)
+
 
     # ----------------------------
     # Overall Collision Risk
@@ -197,19 +196,10 @@ while cap.isOpened():
         state.to_dict()
     )
 
-    print("\nDEBUG")
-    print("Lane Objects:", lane_objects)
 
     risks = [obj["risk"] for obj in lane_objects]
 
-    print("Risks:", risks)
-    print("Collision Risk:", state.collision_risk)
-
-    print(
-        "AFTER RISK CALCULATION:",
-        state.collision_risk
-    )
-
+    
     rule_result = traffic_rule_agent.evaluate(
         state.to_dict()
     )
