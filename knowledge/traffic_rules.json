@@ -1,0 +1,41 @@
+{
+  "critical_collision": {
+    "type": "collision",
+    "condition": "ttc < 1.0",
+    "action": "BRAKE",
+    "reason": "Immediate collision risk",
+    "related_rules": [
+      "vehicle_in_lane",
+      "emergency_braking"
+    ]
+  },
+
+  "danger_collision": {
+    "type": "collision",
+    "condition": "ttc < 2.0",
+    "action": "SLOW_DOWN",
+    "reason": "Potential collision risk",
+    "related_rules": [
+      "vehicle_in_lane"
+    ]
+  },
+
+  "warning_collision": {
+    "type": "collision",
+    "condition": "ttc < 5.0",
+    "action": "CAUTION",
+    "reason": "Monitor nearby vehicles"
+  },
+
+  "vehicle_in_lane": {
+    "type": "lane",
+    "condition": "object in ego lane",
+    "action": "MONITOR"
+  },
+
+  "emergency_braking": {
+    "type": "safety",
+    "condition": "critical collision",
+    "action": "BRAKE"
+  }
+}

@@ -12,6 +12,14 @@ from agents.traffic_rule_agent import TrafficRuleAgent
 from agents.lane_occupancy_agent import LaneOccupancyAgent
 from agents.emergency_brake_agent import EmergencyBrakeAgent
 from agents.safety_report_agent import SafetyReportAgent
+from agents.knowledge_agent import KnowledgeAgent
+from agents.risk_memory_agent import RiskMemoryAgent
+from agents.knowledge_memory_agent import KnowledgeMemoryAgent
+from agents.graph_rag_agent import GraphRAGAgent
+from agents.reasoning_agent import ReasoningAgent
+from agents.decision_fusion_agent import (
+    DecisionFusionAgent
+)
 from risk.ttc import TTCEngine
 
 detector = ObjectDetector()
@@ -37,6 +45,18 @@ lane_agent = LaneOccupancyAgent()
 emergency_brake_agent = EmergencyBrakeAgent()
 
 safety_agent = SafetyReportAgent()
+
+knowledge_agent = KnowledgeAgent()
+
+risk_memory_agent = RiskMemoryAgent()
+
+knowledge_memory_agent = KnowledgeMemoryAgent()
+
+graph_rag_agent = GraphRAGAgent()
+
+reasoning_agent = ReasoningAgent()
+
+fusion_agent = DecisionFusionAgent()
 
 cap = cv2.VideoCapture(r"C:\Users\Bhuvana P\OneDrive\Desktop\NeuroDrive-AI\data\videos\road.mp4")
 
@@ -159,17 +179,31 @@ while cap.isOpened():
         road_info["lane_mask"]
     )
 
-
-
     state.lane_objects = lane_objects
 
     print("\nLANE OBJECTS")
     print(lane_objects)
 
+    graph_context = graph_rag_agent.retrieve(
+        state.to_dict()
+    )
+
+    print("\nGRAPH CONTEXT")
+    print(graph_context)
+
+
+    reasoning_result = (
+        reasoning_agent.reason(
+            graph_context
+        )
+    )
+
+    print("\nREASONING")
+    print(reasoning_result)
+
     state.road_detected = road_info["road_detected"]
 
     state.lane_detected = road_info["lane_detected"]
-
 
 
     # ----------------------------
@@ -192,9 +226,93 @@ while cap.isOpened():
         state.collision_risk = "safe"
 
     
+
+
+    if state.collision_risk == "critical":
+
+        rule_name = "critical_collision"
+
+    elif state.collision_risk == "danger":
+
+        rule_name = "danger_collision"
+
+    elif state.collision_risk == "warning":
+
+        rule_name = "warning_collision"
+
+    else:
+
+        rule_name = None
+
+
+    rule = None
+
+    if rule_name:
+
+        rule = knowledge_agent.retrieve(
+            rule_name
+        )
+
+        related = knowledge_agent.retrieve_related(
+            rule_name
+        )
+
+        print("\nMAIN RULE")
+        print(rule)
+
+        print("\nRELATED RULES")
+        print(related)
+
+    state.knowledge_rule = (
+        knowledge_memory_agent.update(rule)
+    )
+        
+    print("\nSAVED KNOWLEDGE RULE")
+    print(state.knowledge_rule)
+
+
+    state.collision_risk = risk_memory_agent.update(
+        state.collision_risk
+    )
+
+    print("Current Risk:", state.collision_risk)
+
+    
     risk_result = risk_agent.assess(
         state.to_dict()
     )
+
+
+    graph_decision = (
+        reasoning_result["decision"]
+    )
+
+
+
+
+    if state.knowledge_rule:
+
+        rule_decision = (
+            state.knowledge_rule["action"]
+        )
+
+    else:
+
+        rule_decision = "MAINTAIN_SPEED"
+
+
+    final_decision = fusion_agent.decide(
+
+        risk_result["decision"],
+
+        graph_decision,
+
+        rule_decision
+
+    )
+
+    print("\nFUSION RESULT")
+    print(final_decision)
 
 
     risks = [obj["risk"] for obj in lane_objects]
@@ -208,6 +326,8 @@ while cap.isOpened():
 
     state.rule = rule_result["rule"]
 
+
+
     if rule_result["rule_triggered"]:
 
         state.decision = rule_result["action"]
@@ -218,12 +338,15 @@ while cap.isOpened():
 
     else:
 
-        state.decision = risk_result["decision"]
+        state.decision = final_decision
 
         state.priority = risk_result["priority"]
 
         state.reason = risk_result["reason"]
 
+
+    print("\nBEFORE EXPLANATION")
+    print(state.knowledge_rule)
 
     state.explanation = explanation_agent.explain(
         state.to_dict()
@@ -232,6 +355,8 @@ while cap.isOpened():
     perception_summary = perception_agent.analyze(
         state.to_dict()
     )
+
+    
 
     print("\nPERCEPTION SUMMARY")
     print(perception_summary)
@@ -248,6 +373,7 @@ while cap.isOpened():
         print("\n========== DRIVING STATE ==========")
 
         print(state.to_dict())
+        print("Knowledge Rule:", state.knowledge_rule)
 
         print("===================================\n")
 
