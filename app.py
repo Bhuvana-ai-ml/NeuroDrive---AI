@@ -21,6 +21,7 @@ from agents.decision_fusion_agent import (
     DecisionFusionAgent
 )
 from agents.lane_memory_agent import LaneMemoryAgent
+from agents.decision_agent import DecisionAgent
 from risk.ttc import TTCEngine
 
 detector = ObjectDetector()
@@ -60,6 +61,8 @@ reasoning_agent = ReasoningAgent()
 fusion_agent = DecisionFusionAgent()
 
 lane_memory_agent = LaneMemoryAgent()
+
+decision_agent = DecisionAgent()
 
 cap = cv2.VideoCapture(r"C:\Users\Bhuvana P\OneDrive\Desktop\NeuroDrive-AI\data\videos\road.mp4")
 
@@ -311,6 +314,7 @@ while cap.isOpened():
         state.to_dict()
     )
 
+    risk_decision = risk_result["decision"]
 
     graph_decision = (
         reasoning_result["decision"]
@@ -321,13 +325,32 @@ while cap.isOpened():
 
     if state.knowledge_rule:
 
-        rule_decision = (
-            state.knowledge_rule["action"]
-        )
+        action = state.knowledge_rule["action"]
 
-    else:
+        if action == "BRAKE":
 
-        rule_decision = "MAINTAIN_SPEED"
+            rule_decision = "BRAKE"
+
+        elif action == "SLOW_DOWN":
+
+            rule_decision = "SLOW_DOWN"
+
+        elif action == "CAUTION":
+
+            rule_decision = "CAUTION"
+
+        else:
+
+            rule_decision = "MAINTAIN_SPEED"
+
+    fusion_result = decision_agent.decide(
+        risk_decision,
+        graph_decision,
+        rule_decision
+    )
+
+    print("\nFUSION RESULT")
+    print(fusion_result["decision"])
 
 
     final_decision = fusion_agent.decide(
@@ -357,21 +380,21 @@ while cap.isOpened():
 
 
 
-    if rule_result["rule_triggered"]:
+    state.decision = fusion_result["decision"]
 
-        state.decision = rule_result["action"]
+    state.reason = fusion_result["reason"]
+
+    if state.decision == "BRAKE":
 
         state.priority = "HIGH"
 
-        state.reason = rule_result["rule"]
+    elif state.decision == "SLOW_DOWN":
+
+        state.priority = "MEDIUM"
 
     else:
 
-        state.decision = final_decision
-
-        state.priority = risk_result["priority"]
-
-        state.reason = risk_result["reason"]
+        state.priority = "LOW"
 
 
     print("\nBEFORE EXPLANATION")
