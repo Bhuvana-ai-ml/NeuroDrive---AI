@@ -320,8 +320,8 @@ while cap.isOpened():
         reasoning_result["decision"]
     )
 
-
-
+    # Default value
+    rule_decision = "MAINTAIN_SPEED"
 
     if state.knowledge_rule:
 
@@ -339,10 +339,6 @@ while cap.isOpened():
 
             rule_decision = "CAUTION"
 
-        else:
-
-            rule_decision = "MAINTAIN_SPEED"
-
     fusion_result = decision_agent.decide(
         risk_decision,
         graph_decision,
@@ -353,18 +349,6 @@ while cap.isOpened():
     print(fusion_result["decision"])
 
 
-    final_decision = fusion_agent.decide(
-
-        risk_result["decision"],
-
-        graph_decision,
-
-        rule_decision
-
-    )
-
-    print("\nFUSION RESULT")
-    print(final_decision)
 
 
     risks = [obj["risk"] for obj in lane_objects]
