@@ -9,11 +9,13 @@ class GraphRAGAgent:
         for obj in objects:
 
             if obj["risk"] == "critical":
+
                 facts.append(
                     f"{obj['class']} critical"
                 )
 
             elif obj["risk"] == "danger":
+
                 facts.append(
                     f"{obj['class']} danger"
                 )
@@ -22,4 +24,4 @@ class GraphRAGAgent:
                 f"{obj['class']} in lane"
             )
 
-        return facts
+        return list(dict.fromkeys(facts))

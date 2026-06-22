@@ -20,6 +20,7 @@ from agents.reasoning_agent import ReasoningAgent
 from agents.decision_fusion_agent import (
     DecisionFusionAgent
 )
+from agents.lane_memory_agent import LaneMemoryAgent
 from risk.ttc import TTCEngine
 
 detector = ObjectDetector()
@@ -57,6 +58,8 @@ graph_rag_agent = GraphRAGAgent()
 reasoning_agent = ReasoningAgent()
 
 fusion_agent = DecisionFusionAgent()
+
+lane_memory_agent = LaneMemoryAgent()
 
 cap = cv2.VideoCapture(r"C:\Users\Bhuvana P\OneDrive\Desktop\NeuroDrive-AI\data\videos\road.mp4")
 
@@ -179,7 +182,33 @@ while cap.isOpened():
         road_info["lane_mask"]
     )
 
+
+    for obj in enhanced_detections:
+
+        track_id = obj["id"]
+
+        obj["in_lane"] = lane_memory_agent.update(
+            track_id,
+            obj["in_lane"]
+        )
+
+    lane_objects = [
+        obj
+        for obj in enhanced_detections
+        if obj["in_lane"]
+    ]
+
     state.lane_objects = lane_objects
+
+    print("\nLANE MEMORY OUTPUT")
+
+    for obj in lane_objects:
+
+        print(
+            obj["id"],
+            obj["class"],
+            obj["in_lane"]
+        )
 
     print("\nLANE OBJECTS")
     print(lane_objects)

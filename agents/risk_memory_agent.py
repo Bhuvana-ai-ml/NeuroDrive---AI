@@ -1,25 +1,25 @@
-class KnowledgeMemoryAgent:
+class RiskMemoryAgent:
 
     def __init__(self):
 
-        self.last_rule = None
-        self.cooldown = 0
+        self.last_risk = "safe"
+        self.safe_counter = 0
 
-    def update(self, rule):
+    def update(self, current_risk):
 
-        if rule is not None:
+        if current_risk in ["critical", "danger"]:
 
-            self.last_rule = rule
-            self.cooldown = 5
+            self.last_risk = current_risk
+            self.safe_counter = 0
 
-            return rule
+            return current_risk
 
-        if self.cooldown > 0:
+        self.safe_counter += 1
 
-            self.cooldown -= 1
+        if self.safe_counter < 5:
 
-            return self.last_rule
+            return self.last_risk
 
-        self.last_rule = None
+        self.last_risk = "safe"
 
-        return None
+        return "safe"

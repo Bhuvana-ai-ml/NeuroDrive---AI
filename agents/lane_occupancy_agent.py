@@ -15,7 +15,6 @@ class LaneOccupancyAgent:
             x1, y1, x2, y2 = obj["bbox"]
 
             center_x = (x1 + x2) // 2
-
             bottom_y = y2
 
             center_x = min(
@@ -28,18 +27,35 @@ class LaneOccupancyAgent:
                 mask_h - 1
             )
 
-            x_start = max(center_x - 20, 0)
-            x_end = min(center_x + 20, mask_w)
+            # Larger region around vehicle bottom
+            x_start = max(center_x - 40, 0)
+            x_end = min(center_x + 40, mask_w)
 
-            y_start = max(bottom_y - 10, 0)
-            y_end = min(bottom_y + 10, mask_h)
+            y_start = max(bottom_y - 20, 0)
+            y_end = min(bottom_y + 20, mask_h)
 
             region = lane_mask[
                 y_start:y_end,
                 x_start:x_end
             ]
 
-            if region.sum() > 0:
+            if region.size == 0:
+
+                obj["in_lane"] = False
+
+                continue
+
+            lane_pixels = (
+                region > 0
+            ).sum()
+
+            print(
+                "Lane Pixels:",
+                lane_pixels,
+                obj["class"]
+            )
+
+            if lane_pixels > 5:
 
                 obj["in_lane"] = True
 
@@ -49,5 +65,4 @@ class LaneOccupancyAgent:
 
                 obj["in_lane"] = False
 
-                
         return lane_objects

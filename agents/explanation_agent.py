@@ -1,7 +1,6 @@
 class ExplanationAgent:
-    def explain(self, driving_state):
 
-        
+    def explain(self, driving_state):
 
         risk = driving_state["collision_risk"]
 
@@ -9,16 +8,27 @@ class ExplanationAgent:
 
         lane_objects = driving_state["lane_objects"]
 
-        
+        rule = driving_state.get("knowledge_rule")
 
-        if len(lane_objects) == 0 and len(driving_state["objects"]) == 0:
+        # No objects in lane
+        if len(lane_objects) == 0:
+
+            if rule:
+
+                return (
+                    f"The vehicle decided to {decision}. "
+                    f"No obstacles detected in the driving lane. "
+                    f"Retrieved rule: {rule['reason']}. "
+                    f"Recommended action: {rule['action']}."
+                )
 
             return (
                 f"The vehicle decided to {decision}. "
                 "No obstacles detected in the driving lane."
             )
 
-        objects = driving_state["objects"]
+        # Focus only on lane objects
+        objects = lane_objects
 
         critical_objects = [
             obj
@@ -26,10 +36,23 @@ class ExplanationAgent:
             if obj["risk"] == "critical"
         ]
 
+        danger_objects = [
+            obj
+            for obj in objects
+            if obj["risk"] == "danger"
+        ]
+
         if len(critical_objects) > 0:
 
             nearest = min(
                 critical_objects,
+                key=lambda x: x["distance"]
+            )
+
+        elif len(danger_objects) > 0:
+
+            nearest = min(
+                danger_objects,
                 key=lambda x: x["distance"]
             )
 
@@ -41,28 +64,31 @@ class ExplanationAgent:
             )
 
         if nearest["ttc"] == 999:
+
             ttc_text = "not applicable"
+
         else:
-            ttc_text = f"{nearest['ttc']} seconds"
 
-        rule = driving_state.get("knowledge_rule")
-
-        if rule:
-
-            return (
-                f"The vehicle decided to {decision}. "
-                f"A {nearest['class']} was detected "
-                f"{nearest['distance']} meters ahead. "
-                f"TTC is {ttc_text}. "
-                f"Overall risk level is {risk}. "
-                f"Retrieved rule: {rule['reason']}. "
-                f"Recommended action: {rule['action']}."
+            ttc_text = (
+                f"{nearest['ttc']} seconds"
             )
 
-        return (
+        explanation = (
             f"The vehicle decided to {decision}. "
             f"A {nearest['class']} was detected "
-            f"{nearest['distance']} meters ahead. "
+            f"{nearest['distance']} meters ahead "
+            f"in the driving lane. "
             f"TTC is {ttc_text}. "
             f"Overall risk level is {risk}."
         )
+
+        if rule:
+
+            explanation += (
+                f" Retrieved rule: "
+                f"{rule['reason']}. "
+                f"Recommended action: "
+                f"{rule['action']}."
+            )
+
+        return explanation
