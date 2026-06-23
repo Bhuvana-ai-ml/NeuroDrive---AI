@@ -3,7 +3,7 @@ import cv2
 
 
 class ObjectDetector:
-    def __init__(self, model_path="yolov8n.pt"):
+    def __init__(self, model_path="yolov8s.pt"):
         self.model = YOLO(model_path)
 
         self.target_classes = {
@@ -21,7 +21,7 @@ class ObjectDetector:
         results = self.model.track(
             frame,
             persist=True,
-            conf=0.5
+            conf=0.25
         )
         detections = []
 
@@ -50,6 +50,14 @@ class ObjectDetector:
                     "confidence": round(confidence, 2),
                     "bbox": [x1, y1, x2, y2]
                 })
+        print("\nYOLO DETECTIONS")
+        for det in detections:
+
+            print(
+                det["class"],
+                det["confidence"]
+            )
+
 
         return detections
 

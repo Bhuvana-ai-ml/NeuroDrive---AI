@@ -28,6 +28,9 @@ from agents.traffic_sign_agent import (
 from agents.traffic_rule_graph_agent import (
     TrafficRuleGraphAgent
 )
+from agents.traffic_light_memory_agent import (
+    TrafficLightMemoryAgent
+)
 from risk.ttc import TTCEngine
 
 detector = ObjectDetector()
@@ -77,6 +80,11 @@ traffic_sign_agent = (
 traffic_graph_agent = (
     TrafficRuleGraphAgent()
 )
+
+traffic_light_memory_agent = (
+    TrafficLightMemoryAgent()
+)
+
 
 cap = cv2.VideoCapture(r"C:\Users\Bhuvana P\OneDrive\Desktop\NeuroDrive-AI\data\videos\road.mp4")
 
@@ -215,6 +223,27 @@ while cap.isOpened():
 
     print("\nTRAFFIC GRAPH")
     print(sign_rules)
+
+
+
+    traffic_lights = [
+        obj
+        for obj in enhanced_detections
+        if obj["class"] == "traffic light"
+    ]
+
+    traffic_light_visible = (
+        traffic_light_memory_agent.update(
+            traffic_lights
+        )
+    )
+
+    print(
+        "Traffic Light Visible:",
+        traffic_light_visible
+    )
+
+    
 
     lane_objects = lane_agent.evaluate(
         enhanced_detections,
@@ -415,7 +444,7 @@ while cap.isOpened():
 
     state.reason = fusion_result["reason"]
 
-    
+
 
     if state.decision == "BRAKE":
 
