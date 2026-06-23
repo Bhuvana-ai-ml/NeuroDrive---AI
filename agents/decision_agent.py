@@ -4,13 +4,24 @@ class DecisionAgent:
         self,
         risk_decision,
         graph_decision,
-        rule_decision
+        rule_decision,
+        sign_decision
     ):
+
+        # Highest priority: traffic signs
+
+        if sign_decision == "STOP":
+
+            return {
+                "decision": "STOP",
+                "reason": "Stop sign detected."
+            }
 
         decisions = [
             risk_decision,
             graph_decision,
-            rule_decision
+            rule_decision,
+            sign_decision
         ]
 
         if "BRAKE" in decisions:
@@ -32,6 +43,13 @@ class DecisionAgent:
             return {
                 "decision": "CAUTION",
                 "reason": "Knowledge graph recommends caution."
+            }
+
+        if "MONITOR" in decisions:
+
+            return {
+                "decision": "MONITOR",
+                "reason": "Continue monitoring the environment."
             }
 
         return {

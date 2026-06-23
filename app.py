@@ -22,6 +22,12 @@ from agents.decision_fusion_agent import (
 )
 from agents.lane_memory_agent import LaneMemoryAgent
 from agents.decision_agent import DecisionAgent
+from agents.traffic_sign_agent import (
+    TrafficSignAgent
+)
+from agents.traffic_rule_graph_agent import (
+    TrafficRuleGraphAgent
+)
 from risk.ttc import TTCEngine
 
 detector = ObjectDetector()
@@ -63,6 +69,14 @@ fusion_agent = DecisionFusionAgent()
 lane_memory_agent = LaneMemoryAgent()
 
 decision_agent = DecisionAgent()
+
+traffic_sign_agent = (
+    TrafficSignAgent()
+)
+
+traffic_graph_agent = (
+    TrafficRuleGraphAgent()
+)
 
 cap = cv2.VideoCapture(r"C:\Users\Bhuvana P\OneDrive\Desktop\NeuroDrive-AI\data\videos\road.mp4")
 
@@ -179,6 +193,28 @@ while cap.isOpened():
     
 
     state.objects = enhanced_detections
+
+    traffic_signs = (
+        traffic_sign_agent.evaluate(
+            enhanced_detections
+        )
+    )
+
+    print("\nTRAFFIC SIGNS")
+    print(traffic_signs)
+
+    state.traffic_signs = (
+        traffic_signs
+    )
+
+    sign_rules = (
+        traffic_graph_agent.retrieve(
+            traffic_signs
+        )
+    )
+
+    print("\nTRAFFIC GRAPH")
+    print(sign_rules)
 
     lane_objects = lane_agent.evaluate(
         enhanced_detections,
@@ -339,10 +375,21 @@ while cap.isOpened():
 
             rule_decision = "CAUTION"
 
+
+    sign_decision = None
+
+    if len(sign_rules) > 0:
+
+        sign_decision = (
+            sign_rules[0]["action"]
+        )
+
+
     fusion_result = decision_agent.decide(
         risk_decision,
         graph_decision,
-        rule_decision
+        rule_decision, 
+        sign_decision
     )
 
     print("\nFUSION RESULT")
@@ -367,6 +414,8 @@ while cap.isOpened():
     state.decision = fusion_result["decision"]
 
     state.reason = fusion_result["reason"]
+
+    
 
     if state.decision == "BRAKE":
 
