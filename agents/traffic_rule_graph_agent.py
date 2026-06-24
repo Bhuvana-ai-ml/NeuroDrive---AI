@@ -15,11 +15,32 @@ class TrafficRuleGraphAgent:
                     "reason":"Stop sign ahead"
                 })
 
-            elif cls == "traffic light":
+            if cls == "traffic light":
 
-                rules.append({
-                    "action":"MONITOR_LIGHT",
-                    "reason":"Traffic signal detected"
-                })
+                state = sign.get(
+                    "light_state",
+                    "UNKNOWN"
+                )
+
+                if state == "RED":
+
+                    rules.append({
+                        "action":"STOP",
+                        "reason":"Red traffic light"
+                    })
+
+                elif state == "YELLOW":
+
+                    rules.append({
+                        "action":"SLOW_DOWN",
+                        "reason":"Yellow traffic light"
+                    })
+
+                elif state == "GREEN":
+
+                    rules.append({
+                        "action":"MAINTAIN_SPEED",
+                        "reason":"Green traffic light"
+                    })
 
         return rules

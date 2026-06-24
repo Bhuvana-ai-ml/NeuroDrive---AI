@@ -31,6 +31,12 @@ from agents.traffic_rule_graph_agent import (
 from agents.traffic_light_memory_agent import (
     TrafficLightMemoryAgent
 )
+from agents.traffic_light_state_agent import (
+    TrafficLightStateAgent
+)
+from agents.traffic_light_relevance_agent import (
+    TrafficLightRelevanceAgent
+)
 from risk.ttc import TTCEngine
 
 detector = ObjectDetector()
@@ -85,6 +91,13 @@ traffic_light_memory_agent = (
     TrafficLightMemoryAgent()
 )
 
+traffic_light_state_agent = (
+    TrafficLightStateAgent()
+)
+
+traffic_light_relevance_agent = (
+    TrafficLightRelevanceAgent()
+)
 
 cap = cv2.VideoCapture(r"C:\Users\Bhuvana P\OneDrive\Desktop\NeuroDrive-AI\data\videos\road.mp4")
 
@@ -215,14 +228,86 @@ while cap.isOpened():
         traffic_signs
     )
 
+    traffic_lights = (
+        traffic_light_state_agent.classify(
+            frame,
+            traffic_signs
+        )
+    )
+
+    print("\nTRAFFIC LIGHT STATES")
+
+    traffic_lights = (
+        traffic_light_relevance_agent
+        .filter_relevant(
+            traffic_lights,
+            frame.shape[1]
+        )
+    )
+
+    print("\nRELEVANT TRAFFIC LIGHT")
+
+    for light in traffic_lights:
+
+        print(
+            light["light_state"],
+            light["bbox"]
+        )
+
+    for light in traffic_lights:
+
+        print(
+            light["light_state"],
+            light["confidence"]
+        )
+
     sign_rules = (
         traffic_graph_agent.retrieve(
             traffic_signs
         )
     )
 
+
+    traffic_lights = (
+        traffic_light_relevance_agent
+        .filter_relevant(
+            traffic_lights,
+            frame.shape[1]
+        )
+    )
+    
+
+    relevant_light = None
+
+    if len(traffic_lights) > 0:
+
+        relevant_light = traffic_lights[0]
+
+
+    if relevant_light:
+        sign_rules = (
+            traffic_graph_agent.retrieve(
+                [relevant_light]
+            )
+        )
+    else:
+        sign_rules = []
+
+
     print("\nTRAFFIC GRAPH")
     print(sign_rules)
+
+
+    sign_decision = None
+    if len(sign_rules) > 0:
+
+        sign_decision = (
+            sign_rules[0]["action"]
+        )
+    print(
+        "SIGN DECISION:",
+        sign_decision
+    )
 
 
 
@@ -243,7 +328,7 @@ while cap.isOpened():
         traffic_light_visible
     )
 
-    
+
 
     lane_objects = lane_agent.evaluate(
         enhanced_detections,
@@ -407,6 +492,26 @@ while cap.isOpened():
 
     sign_decision = None
 
+    if len(traffic_lights) > 0:
+
+        state_name = (
+            traffic_lights[0]["light_state"]
+        )
+
+        if state_name == "RED":
+
+            sign_decision = "STOP"
+
+        elif state_name == "YELLOW":
+
+            sign_decision = "SLOW_DOWN"
+
+        elif state_name == "GREEN":
+
+            sign_decision = "MAINTAIN_SPEED"
+
+
+
     if len(sign_rules) > 0:
 
         sign_decision = (
@@ -420,6 +525,14 @@ while cap.isOpened():
         rule_decision, 
         sign_decision
     )
+
+    state.decision = (
+        fusion_result["decision"]
+    )
+
+    state.reason = (
+        fusion_result["reason"]
+)
 
     print("\nFUSION RESULT")
     print(fusion_result["decision"])

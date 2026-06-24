@@ -17,6 +17,8 @@ class DecisionAgent:
                 "reason": "Stop sign detected."
             }
 
+        
+
         decisions = [
             risk_decision,
             graph_decision,
@@ -24,11 +26,18 @@ class DecisionAgent:
             sign_decision
         ]
 
+        if "STOP" in decisions:
+
+            return {
+                "decision": "STOP",
+                "reason": "Red traffic light detected."
+            }
+
         if "BRAKE" in decisions:
 
             return {
                 "decision": "BRAKE",
-                "reason": "One or more agents requested braking."
+                "reason": "Collision risk detected."
             }
 
         if "SLOW_DOWN" in decisions:
@@ -45,14 +54,7 @@ class DecisionAgent:
                 "reason": "Knowledge graph recommends caution."
             }
 
-        if "MONITOR" in decisions:
-
-            return {
-                "decision": "MONITOR",
-                "reason": "Continue monitoring the environment."
-            }
-
         return {
             "decision": "MAINTAIN_SPEED",
-            "reason": "All agents agree road is safe."
+            "reason": "Road conditions safe."
         }
