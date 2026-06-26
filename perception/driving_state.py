@@ -19,6 +19,8 @@ class DrivingState:
         self.emergency_brake = False
         self.knowledge_rule = None
         self.traffic_signs = []
+        self.left_lane_free = True
+        self.right_lane_free = True
 
         
 
@@ -38,5 +40,7 @@ class DrivingState:
             "lane_objects": self.lane_objects,
             "emergency_brake": self.emergency_brake,
             "knowledge_rule": self.knowledge_rule,
-            "traffic_signs": self.traffic_signs
+            "traffic_signs": self.traffic_signs,
+            "left_lane_free": self.left_lane_free,
+            "right_lane_free": self.right_lane_free,
         }

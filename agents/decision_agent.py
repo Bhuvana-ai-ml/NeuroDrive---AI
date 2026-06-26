@@ -5,41 +5,49 @@ class DecisionAgent:
         risk_decision,
         graph_decision,
         rule_decision,
-        sign_decision
+        sign_decision,
+        lane_change_decision
     ):
-
-        # Highest priority: traffic signs
-
-        if sign_decision == "STOP":
-
-            return {
-                "decision": "STOP",
-                "reason": "Stop sign detected."
-            }
-
-        
 
         decisions = [
             risk_decision,
             graph_decision,
             rule_decision,
-            sign_decision
+            sign_decision,
+            lane_change_decision
         ]
 
-        if "STOP" in decisions:
-
-            return {
-                "decision": "STOP",
-                "reason": "Red traffic light detected."
-            }
-
+        # 1. Emergency collision avoidance
         if "BRAKE" in decisions:
 
             return {
                 "decision": "BRAKE",
-                "reason": "Collision risk detected."
+                "reason": "Emergency collision risk detected."
             }
 
+        if "CHANGE_LEFT" in decisions:
+
+            return {
+                "decision": "CHANGE_LEFT",
+                "reason": "Safe left lane available."
+            }
+
+        if "CHANGE_RIGHT" in decisions:
+
+            return {
+                "decision": "CHANGE_RIGHT",
+                "reason": "Safe right lane available."
+            }
+
+        # 2. Traffic signals/signs
+        if "STOP" in decisions:
+
+            return {
+                "decision": "STOP",
+                "reason": "Traffic signal requires stopping."
+            }
+
+        # 3. High-risk situations
         if "SLOW_DOWN" in decisions:
 
             return {
@@ -47,14 +55,15 @@ class DecisionAgent:
                 "reason": "Potential hazard detected."
             }
 
+        # 4. Advisory warnings
         if "CAUTION" in decisions:
 
             return {
                 "decision": "CAUTION",
-                "reason": "Knowledge graph recommends caution."
+                "reason": "Proceed carefully."
             }
 
         return {
             "decision": "MAINTAIN_SPEED",
-            "reason": "Road conditions safe."
+            "reason": "Road conditions appear safe."
         }

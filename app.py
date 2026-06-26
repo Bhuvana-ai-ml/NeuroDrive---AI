@@ -21,6 +21,7 @@ from agents.decision_fusion_agent import (
     DecisionFusionAgent
 )
 from agents.lane_memory_agent import LaneMemoryAgent
+from agents.lane_change_agent import LaneChangeAgent
 from agents.decision_agent import DecisionAgent
 from agents.traffic_sign_agent import (
     TrafficSignAgent
@@ -78,6 +79,8 @@ fusion_agent = DecisionFusionAgent()
 lane_memory_agent = LaneMemoryAgent()
 
 decision_agent = DecisionAgent()
+
+lane_change_agent = LaneChangeAgent()
 
 traffic_sign_agent = (
     TrafficSignAgent()
@@ -225,7 +228,7 @@ while cap.isOpened():
     print(traffic_signs)
 
     state.traffic_signs = (
-        traffic_signs
+        traffic_lights
     )
 
     traffic_lights = (
@@ -296,6 +299,14 @@ while cap.isOpened():
 
     print("\nTRAFFIC GRAPH")
     print(sign_rules)
+
+
+    lane_change_result = lane_change_agent.decide(
+        state.to_dict()
+    )
+
+    print("\nLANE CHANGE")
+    print(lane_change_result)
 
 
     sign_decision = None
@@ -559,17 +570,26 @@ while cap.isOpened():
 
 
 
-    if state.decision == "BRAKE":
+    if state.emergency_brake:
 
         state.priority = "HIGH"
 
-    elif state.decision == "SLOW_DOWN":
+    elif state.collision_risk == "critical":
+
+        state.priority = "HIGH"
+
+    elif state.collision_risk == "danger":
+
+        state.priority = "MEDIUM"
+
+    elif state.decision in ["STOP", "SLOW_DOWN"]:
 
         state.priority = "MEDIUM"
 
     else:
 
         state.priority = "LOW"
+
 
 
     print("\nBEFORE EXPLANATION")
