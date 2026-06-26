@@ -228,7 +228,7 @@ while cap.isOpened():
     print(traffic_signs)
 
     state.traffic_signs = (
-        traffic_lights
+        traffic_signs
     )
 
     traffic_lights = (
@@ -271,13 +271,7 @@ while cap.isOpened():
     )
 
 
-    traffic_lights = (
-        traffic_light_relevance_agent
-        .filter_relevant(
-            traffic_lights,
-            frame.shape[1]
-        )
-    )
+    
     
 
     relevant_light = None
